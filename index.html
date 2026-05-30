@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Andrew Sabry — Filmmaker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ===========================
+       CSS VARIABLES & RESET
+    =========================== */
+    :root {
+      --bg:        #080808;
+      --surface:   #111111;
+      --surface2:  #1a1a1a;
+      --border:    rgba(255,255,255,0.08);
+      --text:      #f0ece4;
+      --muted:     rgba(240,236,228,0.45);
+      --accent:    #c8a96e;
+      --font-disp: 'Cormorant Garamond', Georgia, serif;
+      --font-body: 'DM Sans', sans-serif;
+      --nav-h:     72px;
+      --ease:      cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; font-size: 16px; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-weight: 300;
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* ===========================
+       CUSTOM CURSOR
+    =========================== */
+    .cursor {
+      position: fixed; width: 10px; height: 10px;
+      background: var(--accent); border-radius: 50%;
+      pointer-events: none; z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: width 0.2s, height 0.2s; mix-blend-mode: screen;
+    }
+    .cursor-ring {
+      position: fixed; width: 36px; height: 36px;
+      border: 1px solid rgba(200,169,110,0.5); border-radius: 50%;
+      pointer-events: none; z-index: 9998;
+      transform: translate(-50%, -50%);
+      transition: width 0.35s var(--ease), height 0.35s var(--ease);
+    }
+    body:has(a:hover) .cursor-ring,
+    body:has(button:hover) .cursor-ring { width: 52px; height: 52px; }
+
+    /* ===========================
+       LOADER
+    =========================== */
+    #loader {
+      position: fixed; inset: 0; background: var(--bg);
+      z-index: 1000; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 24px;
+      transition: opacity 0.8s var(--ease), visibility 0.8s;
+    }
+    #loader.hidden { opacity: 0; visibility: hidden; }
+    .loader-name {
+      font-family: var(--font-disp); font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 300; letter-spacing: 0.25em; color: var(--text);
+      opacity: 0; animation: fadeUp 0.8s 0.3s forwards;
+    }
+    .loader-bar-wrap { width: 200px; height: 1px; background: rgba(255,255,255,0.1); overflow: hidden; }
+    .loader-bar { height: 100%; background: var(--accent); animation: loadProgress 1.8s var(--ease) forwards; }
+    @keyframes loadProgress { from { width: 0; } to { width: 100%; } }
+
+    /* ===========================
+       NAVBAR
+    =========================== */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; height: var(--nav-h);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 clamp(20px, 5vw, 60px); z-index: 100;
+      transition: background 0.4s, border-color 0.4s;
+      border-bottom: 1px solid transparent;
+    }
+    nav.scrolled { background: rgba(8,8,8,0.92); backdrop-filter: blur(16px); border-color: var(--border); }
+    .nav-logo {
+      font-family: var(--font-disp); font-size: 1.25rem; font-weight: 400;
+      letter-spacing: 0.12em; color: var(--text); text-decoration: none;
+    }
+    .nav-logo span { color: var(--accent); }
+    .nav-links { display: flex; gap: clamp(16px, 3vw, 36px); list-style: none; }
+    .nav-links a {
+      font-size: 0.75rem; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--muted); text-decoration: none; transition: color 0.3s; position: relative;
+    }
+    .nav-links a::after {
+      content: ''; position: absolute; bottom: -4px; left: 0;
+      width: 0; height: 1px; background: var(--accent); transition: width 0.3s;
+    }
+    .nav-links a:hover, .nav-links a.active { color: var(--text); }
+    .nav-links a:hover::after, .nav-links a.active::after { width: 100%; }
+    .hamburger {
+      display: none; flex-direction: column; gap: 5px;
+      background: none; border: none; cursor: pointer; padding: 4px;
+    }
+    .hamburger span { display: block; width: 22px; height: 1px; background: var(--text); transition: transform 0.3s, opacity 0.3s; }
+    .hamburger.open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+    .hamburger.open span:nth-child(2) { opacity: 0; }
+    .hamburger.open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+    .mobile-menu {
+      display: none; position: fixed; inset: 0;
+      background: rgba(8,8,8,0.97); backdrop-filter: blur(24px);
+      z-index: 99; flex-direction: column; align-items: center; justify-content: center; gap: 36px;
+    }
+    .mobile-menu.open { display: flex; }
+    .mobile-menu a {
+      font-family: var(--font-disp); font-size: clamp(2rem, 6vw, 3rem);
+      font-weight: 300; color: var(--text); text-decoration: none;
+      letter-spacing: 0.08em; transition: color 0.3s;
+    }
+    .mobile-menu a:hover { color: var(--accent); }
+
+    /* ===========================
+       HERO
+    =========================== */
+    #hero {
+      position: relative; height: 100vh; min-height: 600px;
+      display: flex; align-items: center; justify-content: center;
+      text-align: center; overflow: hidden;
+    }
+    .hero-bg {
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% 40%, #1c1208 0%, #080808 70%);
+    }
+    .hero-bg::before {
+      content: ''; position: absolute; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E");
+      opacity: 0.4; pointer-events: none;
+    }
+    .hero-bg::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, transparent 20%, transparent 80%, rgba(0,0,0,0.55) 100%);
+    }
+    .hero-lines { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+    .hero-lines::before, .hero-lines::after {
+      content: ''; position: absolute; left: 50%; top: 50%;
+      transform: translate(-50%, -50%);
+      border: 1px solid rgba(200,169,110,0.08); border-radius: 50%;
+      animation: expandRing 6s linear infinite;
+    }
+    .hero-lines::after { animation-delay: 3s; }
+    @keyframes expandRing { from { width: 0; height: 0; opacity: 0.5; } to { width: 140vmax; height: 140vmax; opacity: 0; } }
+    .hero-content {
+      position: relative; z-index: 2;
+      display: flex; flex-direction: column; align-items: center; gap: 20px;
+    }
+    .hero-eyebrow { font-size: 0.7rem; letter-spacing: 0.35em; text-transform: uppercase; color: var(--accent); opacity: 0; animation: fadeUp 1s 1.6s forwards; }
+    .hero-title { font-family: var(--font-disp); font-size: clamp(3.5rem, 10vw, 9rem); font-weight: 300; line-height: 0.9; opacity: 0; animation: fadeUp 1s 1.8s forwards; }
+    .hero-title em { font-style: italic; color: var(--accent); }
+    .hero-subtitle { font-size: clamp(0.75rem, 1.5vw, 0.875rem); letter-spacing: 0.3em; text-transform: uppercase; color: var(--muted); opacity: 0; animation: fadeUp 1s 2s forwards; }
+    .hero-divider { width: 40px; height: 1px; background: var(--accent); opacity: 0; animation: fadeUp 1s 2.1s forwards; }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 14px 32px; border: 1px solid var(--accent); color: var(--accent);
+      font-family: var(--font-body); font-size: 0.75rem; letter-spacing: 0.2em;
+      text-transform: uppercase; text-decoration: none; background: transparent;
+      cursor: pointer; opacity: 0; animation: fadeUp 1s 2.3s forwards;
+      position: relative; overflow: hidden;
+    }
+    .btn-primary::before {
+      content: ''; position: absolute; inset: 0; background: var(--accent);
+      transform: translateX(-101%); transition: transform 0.4s var(--ease);
+    }
+    .btn-primary:hover::before { transform: translateX(0); }
+    .btn-primary:hover { color: var(--bg); }
+    .btn-primary span { position: relative; z-index: 1; display: flex; align-items: center; gap: 10px; }
+    .play-icon { width: 14px; height: 14px; fill: currentColor; }
+    .hero-scroll {
+      position: absolute; bottom: 36px; left: 50%; transform: translateX(-50%);
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      opacity: 0; animation: fadeUp 1s 2.6s forwards; z-index: 2;
+    }
+    .scroll-text { font-size: 0.65rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--muted); }
+    .scroll-line { width: 1px; height: 48px; background: linear-gradient(to bottom, var(--accent), transparent); animation: scrollPulse 2s ease-in-out infinite; }
+    @keyframes scrollPulse { 0%,100%{ opacity:0.3; } 50%{ opacity:1; } }
+
+    /* ===========================
+       SHARED SECTION STYLES
+    =========================== */
+    section { padding: clamp(80px, 12vw, 140px) clamp(20px, 8vw, 100px); position: relative; }
+    .section-header { margin-bottom: clamp(40px, 6vw, 72px); }
+    .section-tag { display: inline-block; font-size: 0.65rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
+    .section-title { font-family: var(--font-disp); font-size: clamp(2.2rem, 5vw, 4.5rem); font-weight: 300; line-height: 1; }
+    .section-title em { font-style: italic; }
+    .section-line { width: 48px; height: 1px; background: var(--accent); margin-top: 20px; }
+    .reveal { opacity: 0; transform: translateY(32px); transition: opacity 0.8s var(--ease), transform 0.8s var(--ease); }
+    .reveal.visible { opacity: 1; transform: none; }
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+
+    /* ===========================
+       VIDEO MODAL — true fullscreen
+    =========================== */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: #000;
+      z-index: 9999;
+      display: none;          /* hidden by default */
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .modal-overlay.open { display: flex; }
+
+    /* Close bar at very top */
+    .modal-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 10px 14px;
+      background: #000;
+      flex-shrink: 0;
+    }
+    .modal-close {
+      display: flex; align-items: center; gap: 6px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 6px;
+      color: #fff;
+      font-family: var(--font-body);
+      font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase;
+      padding: 8px 18px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .modal-close:hover { background: rgba(255,255,255,0.2); }
+
+    /* iframe takes ALL remaining height */
+    .modal-video-wrap {
+      flex: 1;                  /* fill everything below the close bar */
+      position: relative;
+      background: #000;
+      overflow: hidden;
+    }
+    .modal-video-wrap iframe {
+      position: absolute;
+      inset: 0;
+      width: 100%; height: 100%;
+      border: none;
+    }
+
+    /* Reel mode — center a portrait iframe */
+    .modal-video-wrap.reel-mode {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-video-wrap.reel-mode iframe {
+      position: relative;
+      inset: auto;
+      width: min(400px, 100%);
+      height: 100%;
+    }
+
+    /* ===========================
+       ADS SECTION
+       Cards show looping muted preview on hover, full modal on click
+    =========================== */
+    #ads { background: var(--bg); }
+    .arabic-title { font-family: var(--font-disp); font-size: clamp(2rem, 4vw, 3.5rem); font-weight: 300; direction: rtl; }
+
+    .video-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+      gap: 20px;
+    }
+    .video-card {
+      position: relative; aspect-ratio: 16/9;
+      overflow: hidden; background: var(--surface); cursor: pointer;
+    }
+    /* Thumbnail image as card background */
+    .video-card .card-thumb {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      object-fit: cover;
+      filter: brightness(0.65);
+      transition: filter 0.6s var(--ease), transform 0.6s var(--ease);
+    }
+    .video-card:hover .card-thumb { filter: brightness(0.4); transform: scale(1.04); }
+    .video-card-overlay {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 12px;
+    }
+    .play-btn {
+      width: 54px; height: 54px;
+      border: 1.5px solid rgba(200,169,110,0.6); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      transition: transform 0.3s, border-color 0.3s, background 0.3s;
+    }
+    .video-card:hover .play-btn { transform: scale(1.1); border-color: var(--accent); background: rgba(200,169,110,0.1); }
+    .play-btn svg { width: 16px; fill: var(--accent); margin-left: 3px; }
+    .video-card-title {
+      font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text);
+      opacity: 0; transform: translateY(8px); transition: opacity 0.3s, transform 0.3s;
+    }
+    .video-card:hover .video-card-title { opacity: 1; transform: none; }
+
+    /* ===========================
+       WEDDING SECTION
+    =========================== */
+    #wedding { background: linear-gradient(160deg, #0c0a08 0%, #0e0b09 100%); }
+    .wedding-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px; }
+    .wedding-card:nth-child(1) { grid-column: span 7; }
+    .wedding-card:nth-child(2) { grid-column: span 5; }
+    .wedding-card:nth-child(3) { grid-column: span 4; }
+    .wedding-card:nth-child(4) { grid-column: span 4; }
+    .wedding-card:nth-child(5) { grid-column: span 4; }
+    .wedding-card {
+      position: relative; overflow: hidden; aspect-ratio: 16/10;
+      cursor: pointer; background: var(--surface);
+    }
+    .wedding-card .card-thumb {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      object-fit: cover;
+      filter: brightness(0.6) saturate(0.7);
+      transition: transform 0.8s var(--ease), filter 0.8s;
+    }
+    .wedding-card:hover .card-thumb { transform: scale(1.04); filter: brightness(0.4) saturate(0.5); }
+    .wedding-card-info {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      padding: 28px 20px 20px;
+      background: linear-gradient(to top, rgba(0,0,0,0.85), transparent);
+      display: flex; align-items: flex-end; justify-content: space-between;
+      transform: translateY(8px); transition: transform 0.4s;
+    }
+    .wedding-card:hover .wedding-card-info { transform: none; }
+    .wedding-card-name { font-family: var(--font-disp); font-size: 1.15rem; font-weight: 300; font-style: italic; color: var(--text); }
+    .wedding-card-date { font-size: 0.65rem; letter-spacing: 0.2em; color: var(--accent); text-transform: uppercase; }
+    .wedding-play {
+      width: 36px; height: 36px; border: 1px solid rgba(200,169,110,0.5); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; transition: opacity 0.4s;
+    }
+    .wedding-card:hover .wedding-play { opacity: 1; }
+    .wedding-play svg { width: 11px; fill: var(--accent); margin-left: 2px; }
+
+    /* ===========================
+       CONTENT CREATOR — vertical 9:16 reels
+    =========================== */
+    #content { background: var(--bg); }
+    .reels-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(min(200px, 100%), 1fr));
+      gap: 12px;
+    }
+    .reel-card {
+      position: relative; aspect-ratio: 9/16;
+      overflow: hidden; background: var(--surface);
+      cursor: pointer; border-radius: 4px;
+    }
+    .reel-card .card-thumb {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      object-fit: cover;
+      filter: brightness(0.65);
+      transition: transform 0.6s var(--ease), filter 0.6s;
+    }
+    .reel-card:hover .card-thumb { transform: scale(1.06); filter: brightness(0.35); }
+    .reel-overlay {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 8px;
+    }
+    .reel-icon {
+      width: 44px; height: 44px; border: 1.5px solid rgba(200,169,110,0.5); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      transition: transform 0.3s, border-color 0.3s;
+    }
+    .reel-card:hover .reel-icon { transform: scale(1.1); border-color: var(--accent); }
+    .reel-icon svg { width: 14px; fill: var(--accent); margin-left: 2px; }
+    .reel-label {
+      font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted);
+      opacity: 0; transform: translateY(6px); transition: opacity 0.3s, transform 0.3s;
+    }
+    .reel-card:hover .reel-label { opacity: 1; transform: none; }
+    .reel-duration {
+      position: absolute; bottom: 10px; right: 10px;
+      font-size: 0.65rem; color: var(--muted);
+      background: rgba(0,0,0,0.55); padding: 2px 6px; border-radius: 2px;
+    }
+
+    /* ===========================
+       ABOUT
+    =========================== */
+    #about { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .about-grid { display: grid; grid-template-columns: 1fr 1.6fr; gap: clamp(40px, 8vw, 100px); align-items: start; }
+    .about-portrait { position: relative; }
+    .about-portrait img { width: 100%; aspect-ratio: 3/4; object-fit: cover; filter: grayscale(30%) brightness(0.85); }
+    .about-portrait::after {
+      content: ''; position: absolute; bottom: -16px; left: -16px;
+      width: 60%; height: 40%; border: 1px solid rgba(200,169,110,0.25); z-index: -1;
+    }
+    .about-quote {
+      font-family: var(--font-disp); font-size: clamp(1.4rem, 2.5vw, 2rem);
+      font-weight: 300; font-style: italic; line-height: 1.5; color: var(--text);
+      margin-bottom: 28px; padding-left: 20px; border-left: 2px solid var(--accent);
+    }
+    .about-body { font-size: 0.925rem; line-height: 1.9; color: var(--muted); margin-bottom: 36px; }
+    .about-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .stat-item { text-align: center; }
+    .stat-number { font-family: var(--font-disp); font-size: 2.5rem; font-weight: 300; color: var(--accent); line-height: 1; }
+    .stat-label { font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); margin-top: 6px; }
+
+    /* ===========================
+       CONTACT
+    =========================== */
+    #contact { background: var(--bg); }
+    .contact-grid { display: grid; grid-template-columns: 1fr 1.2fr; gap: clamp(40px, 8vw, 100px); align-items: start; }
+    .contact-info-title { font-family: var(--font-disp); font-size: clamp(1.8rem, 3.5vw, 3rem); font-weight: 300; font-style: italic; line-height: 1.2; margin-bottom: 20px; }
+    .contact-info-sub { font-size: 0.875rem; line-height: 1.8; color: var(--muted); margin-bottom: 36px; }
+    .social-links { display: flex; gap: 16px; flex-wrap: wrap; }
+    .social-link {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--muted); text-decoration: none; padding: 10px 18px;
+      border: 1px solid var(--border); transition: color 0.3s, border-color 0.3s;
+    }
+    .social-link:hover { color: var(--accent); border-color: rgba(200,169,110,0.4); }
+    .social-link svg { width: 14px; fill: currentColor; }
+    .contact-form { display: flex; flex-direction: column; gap: 20px; }
+    .form-group { display: flex; flex-direction: column; gap: 8px; }
+    .form-label { font-size: 0.65rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--muted); }
+    .form-input, .form-textarea {
+      background: var(--surface); border: 1px solid var(--border); color: var(--text);
+      font-family: var(--font-body); font-size: 0.9rem; padding: 14px 18px;
+      outline: none; transition: border-color 0.3s; resize: none;
+    }
+    .form-input:focus, .form-textarea:focus { border-color: rgba(200,169,110,0.5); }
+    .form-textarea { min-height: 140px; }
+    .btn-submit {
+      padding: 15px 40px; background: var(--accent); color: var(--bg);
+      font-family: var(--font-body); font-size: 0.75rem; letter-spacing: 0.2em;
+      text-transform: uppercase; border: none; cursor: pointer;
+      transition: background 0.3s, transform 0.2s; align-self: flex-start;
+    }
+    .btn-submit:hover { background: #d4b87a; transform: translateY(-1px); }
+    .form-success { display: none; padding: 16px 20px; border: 1px solid rgba(200,169,110,0.3); color: var(--accent); font-size: 0.85rem; letter-spacing: 0.1em; }
+
+    /* ===========================
+       FOOTER
+    =========================== */
+    footer {
+      padding: 32px clamp(20px, 8vw, 100px);
+      border-top: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+    }
+    .footer-name { font-family: var(--font-disp); font-size: 1rem; letter-spacing: 0.15em; color: var(--muted); }
+    .footer-copy { font-size: 0.7rem; letter-spacing: 0.1em; color: rgba(240,236,228,0.25); }
+
+    /* ===========================
+       KEYFRAMES
+    =========================== */
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
+
+    /* ===========================
+       RESPONSIVE
+    =========================== */
+    @media (max-width: 900px) {
+      .wedding-grid { grid-template-columns: 1fr 1fr; }
+      .wedding-card:nth-child(n) { grid-column: span 1; aspect-ratio: 16/9; }
+      .about-grid { grid-template-columns: 1fr; }
+      .about-portrait { max-width: 340px; }
+      .contact-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      .nav-links { display: none; }
+      .hamburger { display: flex; }
+      .wedding-grid { grid-template-columns: 1fr; }
+      .reels-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- CURSOR -->
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+
+  <!-- LOADER -->
+  <div id="loader">
+    <div class="loader-name">Andrew Sabry</div>
+    <div class="loader-bar-wrap"><div class="loader-bar"></div></div>
+  </div>
+
+  <!-- VIDEO MODAL — fullscreen -->
+  <div class="modal-overlay" id="modal">
+    <div class="modal-topbar">
+      <button class="modal-close" onclick="closeModalBtn()">✕ &nbsp;Close</button>
+    </div>
+    <div class="modal-video-wrap" id="modalWrap">
+      <iframe id="modalIframe" allow="autoplay; fullscreen" allowfullscreen></iframe>
+    </div>
+  </div>
+
+  <!-- NAV -->
+  <nav id="navbar">
+    <a href="#hero" class="nav-logo">Andrew <span>Sabry</span></a>
+    <ul class="nav-links">
+      <li><a href="#ads">Ads</a></li>
+      <li><a href="#wedding">Weddings</a></li>
+      <li><a href="#content">Content</a></li>
+      <li><a href="#about">About</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+    <button class="hamburger" id="hamburger" aria-label="Menu" onclick="toggleMobile()">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <!-- MOBILE MENU -->
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="#ads"     onclick="closeMobile()">Ads / إعلانات</a>
+    <a href="#wedding" onclick="closeMobile()">Weddings</a>
+    <a href="#content" onclick="closeMobile()">Content</a>
+    <a href="#about"   onclick="closeMobile()">About</a>
+    <a href="#contact" onclick="closeMobile()">Contact</a>
+  </div>
+
+  <!-- =====================
+       HERO
+  ===================== -->
+  <section id="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-lines"></div>
+    <div class="hero-content">
+      <div class="hero-eyebrow">Asyut · Egypt</div>
+      <h1 class="hero-title">Andrew<br><em>Sabry</em></h1>
+      <div class="hero-subtitle">Filmmaker &nbsp;·&nbsp; Storyteller &nbsp;·&nbsp; Visual Artist</div>
+      <div class="hero-divider"></div>
+      <!-- EDIT: Replace showreel.mp4 with your actual showreel filename -->
+      <button class="btn-primary" onclick="openModal('showreel.mp4')">
+        <span>
+          <svg class="play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          Watch Showreel
+        </span>
+      </button>
+    </div>
+    <div class="hero-scroll">
+      <span class="scroll-text">Scroll</span>
+      <div class="scroll-line"></div>
+    </div>
+  </section>
+
+  <!-- =====================
+       ADS SECTION
+  ===================== -->
+  <section id="ads">
+    <div class="section-header reveal">
+      <div class="section-tag">Portfolio · Ads</div>
+      <h2 class="section-title arabic-title">Advertisements<br>
+        <span style="font-family:var(--font-disp);font-style:italic;font-size:0.6em;color:var(--muted)">Ads</span>
+      </h2>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="video-grid">
+
+      <!-- Ads video: final promo aug
+           Thumbnail = Google Drive preview image
+           Modal     = Google Drive embed player -->
+      <div class="video-card reveal reveal-delay-1"
+           onclick="openModal('https://drive.google.com/file/d/1y37nRDsPp49mXoLm_smpQ7NS7Jm8qxJF/preview')">
+        <img class="card-thumb"
+             src="https://drive.google.com/thumbnail?id=1y37nRDsPp49mXoLm_smpQ7NS7Jm8qxJF&sz=w800"
+             alt="Final Promo Aug" loading="lazy" />
+        <div class="video-card-overlay">
+          <div class="play-btn"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+          <div class="video-card-title">Final Promo Aug</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- =====================
+       WEDDING SECTION
+  ===================== -->
+  <section id="wedding">
+    <div class="section-header reveal">
+      <div class="section-tag">Cinematic Love Stories</div>
+      <h2 class="section-title">Wedding <em>Films</em></h2>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="wedding-grid">
+
+      <!-- Wedding: f1 -->
+      <div class="wedding-card reveal"
+           onclick="openModal('https://drive.google.com/file/d/1zM_Um7sFxcB07KZOZvdtO_5CNE9AEP8v/preview')">
+        <img class="card-thumb"
+             src="https://drive.google.com/thumbnail?id=1zM_Um7sFxcB07KZOZvdtO_5CNE9AEP8v&sz=w800"
+             alt="Wedding Film F1" loading="lazy" />
+        <div class="wedding-card-info">
+          <div>
+            <div class="wedding-card-name">Wedding Film</div>
+            <div class="wedding-card-date">F1</div>
+          </div>
+          <div class="wedding-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+        </div>
+      </div>
+      <div class="wedding-card reveal"
+           onclick="openModal('https://drive.google.com/file/d/17UyKwTlei4-NiG5TJAoq6wUoV-MZACfT/view?usp=sharing')">
+        <img class="card-thumb"
+             src="https://drive.google.com/thumbnail?id=17UyKwTlei4-NiG5TJAoq6wUoV-MZACfT&sz=w800"
+             alt="Wedding Film F1" loading="lazy" />
+        <div class="wedding-card-info">
+          <div>
+            <div class="wedding-card-name">Wedding Film</div>
+            <div class="wedding-card-date">Mina & Dolly</div>
+          </div>
+          <div class="wedding-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+        </div>
+      </div>
+
+      <!-- Wedding: final -->
+      <div class="wedding-card reveal reveal-delay-1"
+           onclick="openModal('https://drive.google.com/file/d/12IO-F1rbpT0tpJbDTUKlFAKzvphGfLVL/preview')">
+        <img class="card-thumb"
+             src="https://drive.google.com/thumbnail?id=12IO-F1rbpT0tpJbDTUKlFAKzvphGfLVL&sz=w800"
+             alt="Wedding Film Final" loading="lazy" />
+        <div class="wedding-card-info">
+          <div>
+            <div class="wedding-card-name">Wedding Film</div>
+            <div class="wedding-card-date">Final</div>
+          </div>
+          <div class="wedding-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- =====================
+       CONTENT CREATOR
+  ===================== -->
+  <section id="content">
+    <div class="section-header reveal">
+      <div class="section-tag">Social · Digital · Reels</div>
+      <h2 class="section-title">Content <em>Creation</em></h2>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="reels-grid">
+
+      <!-- Content: ta5zya final 2 -->
+      <div class="reel-card reveal"
+           onclick="openModal('https://drive.google.com/file/d/1EdLNtkK_DbkbxT5atJOH93-glelkDW9b/preview', true)">
+        <img class="card-thumb"
+             src="https://drive.google.com/thumbnail?id=1EdLNtkK_DbkbxT5atJOH93-glelkDW9b&sz=w400"
+             alt="Ta5zya" loading="lazy" />
+        <div class="reel-overlay">
+          <div class="reel-icon"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+          <div class="reel-label">Ta5zya</div>
+        </div>
+      </div>
+
+      <!-- Content: f4 -->
+      <div class="reel-card reveal reveal-delay-1"
+           onclick="openModal('https://drive.google.com/file/d/142HsvESEGpamofDMHO7vjRV4M5ZcwBQK/preview', true)">
+        <img class="card-thumb"
+             src="https://drive.google.com/thumbnail?id=142HsvESEGpamofDMHO7vjRV4M5ZcwBQK&sz=w400"
+             alt="F4" loading="lazy" />
+        <div class="reel-overlay">
+          <div class="reel-icon"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+          <div class="reel-label">F4</div>
+        </div>
+      </div>
+
+      <!-- Content: 2lb 4 -->
+      <div class="reel-card reveal reveal-delay-2"
+           onclick="openModal('https://drive.google.com/file/d/1T7cUSYaTnWqCKP3FgEvIZ0L2IuclcDCF/preview', true)">
+        <img class="card-thumb"
+             src="https://drive.google.com/thumbnail?id=1T7cUSYaTnWqCKP3FgEvIZ0L2IuclcDCF&sz=w400"
+             alt="2lb 4" loading="lazy" />
+        <div class="reel-overlay">
+          <div class="reel-icon"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+          <div class="reel-label">2lb 4</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- =====================
+       ABOUT
+  ===================== -->
+  <section id="about">
+    <div class="about-grid">
+      <div class="reveal">
+        <div class="about-portrait">
+          <!-- EDIT: Replace with Andrew's real photo -->
+          <img src="andrew.png" alt="Andrew Sabry"
+               onerror="this.style.background='#1a1a1a';this.style.aspectRatio='3/4';this.removeAttribute('src')" />
+        </div>
+      </div>
+      <div class="reveal reveal-delay-2">
+        <div class="section-tag" style="margin-bottom:12px">The Filmmaker</div>
+        <h2 class="section-title" style="margin-bottom:32px">About <em>Andrew</em></h2>
+        <blockquote class="about-quote">
+          "Every frame is a decision. Every cut is a heartbeat."
+        </blockquote>
+        <!-- EDIT: Update bio text -->
+        <p class="about-body">
+          Andrew Sabry is an Asyut-based filmmaker and visual storyteller with over four years of
+          experience crafting cinematic narratives across advertising, weddings, and digital content.
+          His work is defined by an obsessive attention to light, emotion, and rhythm — the invisible
+          architecture that makes a viewer feel something before they understand why.
+        </p>
+        <p class="about-body" style="margin-bottom:36px">
+          From high-stakes commercial productions to intimate wedding films, Andrew brings the same
+          cinematic intentionality to every project. He believes that authentic storytelling — rooted
+          in genuine human moments — is the most powerful form of communication.
+        </p>
+        <div class="about-stats">
+          <!-- EDIT: Update numbers -->
+          <div class="stat-item">
+            <div class="stat-number">4+</div>
+            <div class="stat-label">Years Active</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number">60+</div>
+            <div class="stat-label">Projects</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number">20+</div>
+            <div class="stat-label">Weddings</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================
+       CONTACT
+  ===================== -->
+  <section id="contact">
+    <div class="contact-grid">
+      <div class="reveal">
+        <div class="section-tag" style="margin-bottom:12px">Get In Touch</div>
+        <h2 class="contact-info-title">Let's create<br>something<br><em>remarkable.</em></h2>
+        <p class="contact-info-sub">
+          Available for commercial projects, weddings,<br>
+          and creative collaborations across Egypt and beyond.
+        </p>
+        <!-- EDIT: Replace with real social links -->
+        <div class="social-links">
+          <a href="https://www.instagram.com/andrew_film_maker?igsh=YWlwOXhucnNxZGs1&utm_source=qr" target="_blank" class="social-link">
+            <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+            Instagram
+          </a>
+          <a href="https://wa.me/201207555850" target="_blank" class="social-link">
+            <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            WhatsApp
+          </a>
+        </div>
+      </div>
+
+      <div class="reveal reveal-delay-2">
+        <!-- Form submits to Formspree → delivers to andrewsabry668@gmail.com
+             SETUP: Go to formspree.io, sign up with andrewsabry668@gmail.com,
+             create a new form, and replace YOUR_FORM_ID below with the ID they give you. -->
+        <form class="contact-form" action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
+          <input type="hidden" name="_subject" value="New message from your portfolio site" />
+          <div class="form-group">
+            <label class="form-label" for="name">Name</label>
+            <input class="form-input" id="name" name="name" type="text" placeholder="Your name" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="email">Email</label>
+            <input class="form-input" id="email" name="email" type="email" placeholder="your@email.com" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="message">Message</label>
+            <textarea class="form-textarea" id="message" name="message" placeholder="Tell me about your project…" required></textarea>
+          </div>
+          <button type="submit" class="btn-submit">Send Message</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-name">Andrew Sabry</div>
+    <div class="footer-copy">© 2024 Andrew Sabry. All rights reserved.</div>
+  </footer>
+
+  <!-- =====================
+       JAVASCRIPT
+  ===================== -->
+  <script>
+    // ===========================
+    // LOADER
+    // ===========================
+    window.addEventListener('load', () => {
+      setTimeout(() => document.getElementById('loader').classList.add('hidden'), 2000);
+    });
+
+    // ===========================
+    // CUSTOM CURSOR
+    // ===========================
+    const cursor = document.getElementById('cursor');
+    const ring   = document.getElementById('cursorRing');
+    let mx = 0, my = 0, rx = 0, ry = 0;
+    document.addEventListener('mousemove', e => {
+      mx = e.clientX; my = e.clientY;
+      cursor.style.left = mx + 'px'; cursor.style.top = my + 'px';
+    });
+    (function animRing() {
+      rx += (mx - rx) * 0.12; ry += (my - ry) * 0.12;
+      ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+      requestAnimationFrame(animRing);
+    })();
+
+    // ===========================
+    // NAVBAR
+    // ===========================
+    const navbar   = document.getElementById('navbar');
+    const navLinks = document.querySelectorAll('.nav-links a');
+    const sections = document.querySelectorAll('section[id]');
+    window.addEventListener('scroll', () => {
+      navbar.classList.toggle('scrolled', window.scrollY > 60);
+      let current = '';
+      sections.forEach(s => { if (window.scrollY >= s.offsetTop - 120) current = s.id; });
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + current));
+    });
+
+    // ===========================
+    // SCROLL REVEAL
+    // ===========================
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } });
+    }, { threshold: 0.12 });
+    document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+    // ===========================
+    // VIDEO MODAL — fullscreen on click
+    // ===========================
+    const modalEl     = document.getElementById('modal');
+    const modalWrap   = document.getElementById('modalWrap');
+    const modalIframe = document.getElementById('modalIframe');
+
+    function openModal(embedUrl, isReel) {
+      modalWrap.classList.toggle('reel-mode', !!isReel);
+      modalIframe.src = embedUrl;
+      modalEl.classList.add('open');
+      document.body.style.overflow = 'hidden';
+
+      // Request native device fullscreen on the modal element
+      const el = modalEl;
+      if (el.requestFullscreen)            el.requestFullscreen();
+      else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen(); // iOS Safari
+      else if (el.mozRequestFullScreen)    el.mozRequestFullScreen();
+      else if (el.msRequestFullscreen)     el.msRequestFullscreen();
+    }
+
+    function closeModalBtn() {
+      // Exit fullscreen if active
+      if (document.fullscreenElement ||
+          document.webkitFullscreenElement ||
+          document.mozFullScreenElement) {
+        (document.exitFullscreen ||
+         document.webkitExitFullscreen ||
+         document.mozCancelFullScreen ||
+         document.msExitFullscreen).call(document);
+      }
+      modalEl.classList.remove('open');
+      modalIframe.src = '';
+      modalWrap.classList.remove('reel-mode');
+      document.body.style.overflow = '';
+    }
+
+    // Also close when user presses Escape or exits fullscreen via device button
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModalBtn(); });
+    document.addEventListener('fullscreenchange',       () => { if (!document.fullscreenElement)            closeModalBtn(); });
+    document.addEventListener('webkitfullscreenchange', () => { if (!document.webkitFullscreenElement)      closeModalBtn(); });
+    document.addEventListener('mozfullscreenchange',    () => { if (!document.mozFullScreenElement)         closeModalBtn(); });
+
+    // ===========================
+    // MOBILE MENU
+    // ===========================
+    function toggleMobile() {
+      document.getElementById('mobileMenu').classList.toggle('open');
+      document.getElementById('hamburger').classList.toggle('open');
+    }
+    function closeMobile() {
+      document.getElementById('mobileMenu').classList.remove('open');
+      document.getElementById('hamburger').classList.remove('open');
+    }
+  </script>
+</body>
+</html>
