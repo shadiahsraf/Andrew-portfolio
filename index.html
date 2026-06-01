@@ -392,6 +392,109 @@
     }
 
     /* ===========================
+       AVAILABILITY / CALENDAR
+    =========================== */
+    #availability { background: var(--bg); }
+    .calendar-wrap {
+      max-width: 720px;
+      margin: 0 auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: clamp(24px, 4vw, 44px);
+    }
+    .calendar-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 28px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .calendar-month {
+      font-family: var(--font-disp);
+      font-size: clamp(1.6rem, 3vw, 2.4rem);
+      font-weight: 300;
+    }
+    .calendar-month em { font-style: italic; color: var(--accent); }
+    .calendar-legend {
+      display: flex; gap: 18px; flex-wrap: wrap;
+      font-size: 0.7rem; letter-spacing: 0.15em;
+      text-transform: uppercase; color: var(--muted);
+    }
+    .legend-item { display: flex; align-items: center; gap: 8px; }
+    .legend-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--surface2); border: 1px solid var(--border);
+    }
+    .legend-dot.busy { background: var(--accent); border-color: var(--accent); }
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+    }
+    .calendar-dow {
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-align: center;
+      padding: 8px 0;
+    }
+    .calendar-day {
+      aspect-ratio: 1 / 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      transition: background 0.3s, border-color 0.3s, transform 0.3s;
+      position: relative;
+    }
+    .calendar-day.empty {
+      background: transparent;
+      border-color: transparent;
+    }
+    .calendar-day.busy {
+      background: var(--accent);
+      color: var(--bg);
+      font-weight: 500;
+      border-color: var(--accent);
+      cursor: not-allowed;
+    }
+    .calendar-day.busy::after {
+      content: 'BUSY';
+      position: absolute;
+      bottom: 4px;
+      font-size: 0.5rem;
+      letter-spacing: 0.15em;
+      opacity: 0.8;
+    }
+    .calendar-day:not(.busy):not(.empty):hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+    .calendar-note {
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.6;
+    }
+    .calendar-note a { color: var(--accent); text-decoration: none; }
+    .calendar-note a:hover { text-decoration: underline; }
+    @media (max-width: 520px) {
+      .calendar-day { font-size: 0.8rem; }
+      .calendar-day.busy::after { font-size: 0.45rem; bottom: 3px; }
+    }
+
+    /* ===========================
        ABOUT
     =========================== */
     #about { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
@@ -512,6 +615,7 @@
       <li><a href="#wedding">Weddings</a></li>
       <li><a href="#content">Content</a></li>
       <li><a href="#about">About</a></li>
+      <li><a href="#availability">Availability</a></li>
       <li><a href="#contact">Contact</a></li>
     </ul>
     <button class="hamburger" id="hamburger" aria-label="Menu" onclick="toggleMobile()">
@@ -525,6 +629,7 @@
     <a href="#wedding" onclick="closeMobile()">Weddings</a>
     <a href="#content" onclick="closeMobile()">Content</a>
     <a href="#about"   onclick="closeMobile()">About</a>
+    <a href="#availability" onclick="closeMobile()">Availability</a>
     <a href="#contact" onclick="closeMobile()">Contact</a>
   </div>
 
@@ -739,6 +844,88 @@
             <div class="stat-label">Weddings</div>
           </div>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================
+       AVAILABILITY / CALENDAR
+  ===================== -->
+  <section id="availability">
+    <div class="section-header reveal">
+      <div class="section-tag">Schedule · June 2026</div>
+      <h2 class="section-title">When Andrew is <em>Available</em></h2>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="calendar-wrap reveal reveal-delay-1">
+      <div class="calendar-header">
+        <div class="calendar-month">June <em>2026</em></div>
+        <div class="calendar-legend">
+          <div class="legend-item"><span class="legend-dot"></span>Available</div>
+          <div class="legend-item"><span class="legend-dot busy"></span>Busy</div>
+        </div>
+      </div>
+
+      <div class="calendar-grid">
+        <!-- Day-of-week headers -->
+        <div class="calendar-dow">Sun</div>
+        <div class="calendar-dow">Mon</div>
+        <div class="calendar-dow">Tue</div>
+        <div class="calendar-dow">Wed</div>
+        <div class="calendar-dow">Thu</div>
+        <div class="calendar-dow">Fri</div>
+        <div class="calendar-dow">Sat</div>
+
+        <!-- Week 1 — June 1, 2026 is a Monday -->
+        <div class="calendar-day empty"></div>
+        <div class="calendar-day busy">1</div>
+        <div class="calendar-day busy">2</div>
+        <div class="calendar-day busy">3</div>
+        <div class="calendar-day">4</div>
+        <div class="calendar-day">5</div>
+        <div class="calendar-day busy">6</div>
+
+        <!-- Week 2 -->
+        <div class="calendar-day">7</div>
+        <div class="calendar-day">8</div>
+        <div class="calendar-day">9</div>
+        <div class="calendar-day">10</div>
+        <div class="calendar-day">11</div>
+        <div class="calendar-day">12</div>
+        <div class="calendar-day">13</div>
+
+        <!-- Week 3 -->
+        <div class="calendar-day">14</div>
+        <div class="calendar-day">15</div>
+        <div class="calendar-day">16</div>
+        <div class="calendar-day">17</div>
+        <div class="calendar-day">18</div>
+        <div class="calendar-day">19</div>
+        <div class="calendar-day">20</div>
+
+        <!-- Week 4 -->
+        <div class="calendar-day">21</div>
+        <div class="calendar-day">22</div>
+        <div class="calendar-day">23</div>
+        <div class="calendar-day">24</div>
+        <div class="calendar-day">25</div>
+        <div class="calendar-day">26</div>
+        <div class="calendar-day">27</div>
+
+        <!-- Week 5 -->
+        <div class="calendar-day">28</div>
+        <div class="calendar-day">29</div>
+        <div class="calendar-day">30</div>
+        <div class="calendar-day empty"></div>
+        <div class="calendar-day empty"></div>
+        <div class="calendar-day empty"></div>
+        <div class="calendar-day empty"></div>
+      </div>
+
+      <div class="calendar-note">
+        Booked dates are marked in gold. For inquiries on available days,
+        <a href="#contact">get in touch</a>.
       </div>
     </div>
   </section>
